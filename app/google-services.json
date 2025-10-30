@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "73326922743",
+    "firebase_url": "https://bookly-demo-bfddc-default-rtdb.firebaseio.com",
+    "project_id": "bookly-demo-bfddc",
+    "storage_bucket": "bookly-demo-bfddc.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:73326922743:android:7c60c5df0cee059896bcf2",
+        "android_client_info": {
+          "package_name": "uk.ac.tees.mad.bookly"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD7BuhPAPq44lztvQirxdkgH1j3RoJEpwA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
