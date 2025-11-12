@@ -6,13 +6,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.google.firebase.auth.FirebaseAuth
 import uk.ac.tees.mad.bookly.presentation.MainScreen
+import uk.ac.tees.mad.bookly.presentation.book_detail.BookDetailRoot
 import uk.ac.tees.mad.bookly.presentation.forgot_password.ForgotPasswordRoot
 import uk.ac.tees.mad.bookly.presentation.login.LoginRoot
 
 @Composable
 fun NavigationRoot(navController: NavHostController) {
 
-    val startDestination = if (FirebaseAuth.getInstance().currentUser != null) {
+    val startDestination: Any = if (FirebaseAuth.getInstance().currentUser != null) {
         GraphRoute.Main
     } else {
         GraphRoute.Login
@@ -40,7 +41,13 @@ fun NavigationRoot(navController: NavHostController) {
         }
 
         composable<GraphRoute.Main> {
-            MainScreen()
+            MainScreen(navController)
+        }
+
+        composable<GraphRoute.BookDetails> { backStackEntry ->
+            BookDetailRoot(
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
     }
 }

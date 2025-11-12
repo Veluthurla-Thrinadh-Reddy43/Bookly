@@ -4,6 +4,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
+import uk.ac.tees.mad.bookly.data.dtos.BookItem
 import uk.ac.tees.mad.bookly.data.dtos.GoogleBooksResponse
 import uk.ac.tees.mad.bookly.domain.BookRemoteDataSource
 import uk.ac.tees.mad.bookly.domain.util.DataError
@@ -26,6 +27,12 @@ class BookRemoteDataSourceImpl @Inject constructor(
                 parameter("maxResults", maxResults)
                 parameter("startIndex", startIndex)
             }.body()
+        }
+    }
+
+    override suspend fun getBookById(bookId: String): Result<BookItem, DataError.Remote> {
+        return httpResult {
+            httpClient.get("https://www.googleapis.com/books/v1/volumes/$bookId").body()
         }
     }
 }

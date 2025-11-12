@@ -5,5 +5,8 @@ data class Book(
     val title: String,
     val authors: List<String>,
     val description: String?,
-    val thumbnail: String?
+    val thumbnail: String?,
+    val smallThumbnail: String?,
+    val publishDate: String?,
+    val rating: Double?
 )

@@ -22,7 +22,9 @@ object DatabaseModule {
             context,
             BooklyDatabase::class.java,
             "bookly.db"
-        ).build()
+        )
+        .fallbackToDestructiveMigration() // This will prevent the crash
+        .build()
     }
 
     @Provides

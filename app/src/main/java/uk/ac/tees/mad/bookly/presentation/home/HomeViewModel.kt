@@ -74,25 +74,23 @@ class HomeViewModel @Inject constructor(
     private fun loadInitialData() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
-            val recentQueriesResult = bookSearchRepository.recentQueries()
-
-            val recentQueries = (recentQueriesResult as? Result.Success)?.data ?: emptyList()
-            val lastQuery = recentQueries.firstOrNull()
-
-            _state.update { it.copy(recentSearches = recentQueries, searchQuery = lastQuery ?: "") }
-
-            if (lastQuery != null) {
+            val lastQuery = bookSearchRepository.getLastSearchQuery()
+            
+            if (lastQuery.isNotEmpty()) {
+                _state.update { it.copy(searchQuery = lastQuery) }
+                // This search will now correctly return cached results when offline
                 when (val searchResult = performSearch(lastQuery)) {
                     is Result.Success -> {
                         _state.update {
                             it.copy(
                                 isLoading = false,
                                 books = searchResult.data,
-                                infoMessage = "Results from your last search are displayed."
+                                infoMessage = if (searchResult.data.isNotEmpty()) "Results from your last search are displayed." else null
                             )
                         }
                     }
                     is Result.Failure -> {
+                        // This case should ideally not be hit in an offline-first setup for the initial load
                         _state.update {
                             it.copy(
                                 isLoading = false,
@@ -103,6 +101,7 @@ class HomeViewModel @Inject constructor(
                     }
                 }
             } else {
+                // No last search, just show the initial message
                 _state.update { it.copy(isLoading = false, infoMessage = "Search for books to get started.") }
             }
         }

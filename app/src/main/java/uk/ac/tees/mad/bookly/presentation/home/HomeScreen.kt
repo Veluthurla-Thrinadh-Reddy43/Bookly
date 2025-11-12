@@ -5,8 +5,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -48,7 +50,7 @@ import uk.ac.tees.mad.bookly.ui.theme.BooklyTheme
 fun HomeRoot(
     viewModel: HomeViewModel = hiltViewModel(),
     onBookClick: (String) -> Unit,
-    onNotificationClick: () -> Unit
+    onNotificationsClick: () -> Unit
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -57,6 +59,8 @@ fun HomeRoot(
         onAction = {
             if (it is HomeAction.OnBookClicked) {
                 onBookClick(it.bookId)
+            } else if (it is HomeAction.OnNotificationsClicked) {
+                onNotificationsClick()
             } else {
                 viewModel.onAction(it)
             }
@@ -170,17 +174,21 @@ fun BookItem(book: Book, onClick: () -> Unit) {
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
-        Row(modifier = Modifier.padding(12.dp)) {
+        Row(
+            modifier = Modifier
+                .padding(12.dp)
+                .height(IntrinsicSize.Max) // Use Max to allow the row to grow to the tallest child
+        ) {
             AsyncImage(
                 model = book.thumbnail?.replace("http://", "https://"),
                 contentDescription = book.title,
                 placeholder = painterResource(id = R.drawable.book_placeholder),
                 error = painterResource(id = R.drawable.book_placeholder),
-                contentScale = ContentScale.Fit,
+                contentScale = ContentScale.Crop, // Use Crop to fill the bounds
                 modifier = Modifier
-                    .width(80.dp)
-                    .height(120.dp)
-                    .clip(RoundedCornerShape(4.dp))
+                    .width(90.dp) // A slightly wider image
+                    .fillMaxHeight() // Fill the height of the row
+                    .clip(RoundedCornerShape(8.dp))
                     .background(Color.LightGray)
             )
             Spacer(modifier = Modifier.width(16.dp))
@@ -208,8 +216,26 @@ fun DataError.Remote.toUserFriendlyString(): String {
 private fun Preview() {
     BooklyTheme {
         val books = listOf(
-            Book("1", "The Silent Patient", listOf("Alex Michaelides"), "A shocking psychological thriller...", null),
-            Book("2", "Where the Crawdads Sing", listOf("Delia Owens"), "A coming-of-age story...", null)
+            Book(
+                id = "1",
+                title = "The Silent Patient",
+                authors = listOf("Alex Michaelides"),
+                description = "A shocking psychological thriller...",
+                thumbnail = null,
+                smallThumbnail = null,
+                publishDate = "2019",
+                rating = 4.1
+            ),
+            Book(
+                id = "2",
+                title = "Where the Crawdads Sing",
+                authors = listOf("Delia Owens"),
+                description = "A coming-of-age story...",
+                thumbnail = null,
+                smallThumbnail = null,
+                publishDate = "2018",
+                rating = 4.8
+            )
         )
         HomeScreen(
             state = HomeState(books = books, infoMessage = "Results from your last search are displayed."),

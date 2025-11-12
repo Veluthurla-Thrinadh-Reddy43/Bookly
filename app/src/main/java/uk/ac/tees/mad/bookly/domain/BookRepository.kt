@@ -9,4 +9,6 @@ interface BookRepository {
         maxResults: Int,
         startIndex: Int
     ): Result<List<Book>, DataError.Remote>
+
+    suspend fun getBookById(bookId: String): Result<Book, DataError.Remote>
 }

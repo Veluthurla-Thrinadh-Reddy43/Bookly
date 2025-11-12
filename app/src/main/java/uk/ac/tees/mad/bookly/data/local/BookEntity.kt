@@ -7,8 +7,10 @@ import androidx.room.PrimaryKey
 data class BookEntity(
     @PrimaryKey val id: String,
     val title: String,
-    val authors: String, // Room can't store lists directly, so we'll join it to a string
+    val authors: String,
     val description: String,
     val thumbnailUrl: String,
-    val searchQuery: String // To associate the book with the search that found it
+    val searchQuery: String,
+    val publishDate: String?,
+    val rating: Double?
 )

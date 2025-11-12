@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -20,40 +21,41 @@ import androidx.navigation.compose.rememberNavController
 import uk.ac.tees.mad.bookly.presentation.components.BottomNavItem
 import uk.ac.tees.mad.bookly.presentation.components.StandardBottomBar
 import uk.ac.tees.mad.bookly.presentation.home.HomeRoot
+import uk.ac.tees.mad.bookly.presentation.navigation.GraphRoute
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen() {
-    val navController = rememberNavController()
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
+fun MainScreen(mainNavController: NavHostController) {
+    val bottomNavController = rememberNavController()
+    val navBackStackEntry by bottomNavController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
     Scaffold(
         topBar = {
-            // Only show the top bar on the search screen
             if (currentDestination?.route == BottomNavItem.Search.route) {
                 CenterAlignedTopAppBar(
                     title = { Text("Search", fontWeight = FontWeight.Bold) },
                     actions = {
-                        IconButton(onClick = { /* TODO */ }) {
+                        IconButton(onClick = { mainNavController.navigate(GraphRoute.Notifications) }) {
                             Icon(Icons.Default.Notifications, contentDescription = "Notifications")
                         }
                     }
                 )
             }
         },
-        bottomBar = { StandardBottomBar(navController = navController) }
+        bottomBar = { StandardBottomBar(navController = bottomNavController) }
     ) { paddingValues ->
         NavHost(
-            navController = navController,
+            navController = bottomNavController,
             startDestination = BottomNavItem.Search.route,
             modifier = Modifier.padding(paddingValues)
         ) {
             composable(BottomNavItem.Search.route) {
                 HomeRoot(
-                    onBookClick = { /* Navigate to book details */ },
-
-                    onNotificationClick = {  }
+                    onBookClick = { bookId ->
+                        mainNavController.navigate(GraphRoute.BookDetails(bookId))
+                    },
+                    onNotificationsClick = { mainNavController.navigate(GraphRoute.Notifications) }
                 )
             }
             composable(BottomNavItem.ReadingList.route) {

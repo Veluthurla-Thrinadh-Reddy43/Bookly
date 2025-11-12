@@ -1,22 +1,17 @@
 package uk.ac.tees.mad.bookly.di
 
+import android.content.Context
+import android.content.SharedPreferences
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import uk.ac.tees.mad.bookly.data.AuthRepositoryImpl
-import uk.ac.tees.mad.bookly.data.BookRemoteDataSourceImpl
-import uk.ac.tees.mad.bookly.data.BookRepositoryImpl
-import uk.ac.tees.mad.bookly.data.BookSearchRepositoryImpl
-import uk.ac.tees.mad.bookly.data.SearchHistoryRepositoryImpl
-import uk.ac.tees.mad.bookly.domain.AuthRepository
-import uk.ac.tees.mad.bookly.domain.BookRemoteDataSource
-import uk.ac.tees.mad.bookly.domain.BookRepository
-import uk.ac.tees.mad.bookly.domain.BookSearchRepository
-import uk.ac.tees.mad.bookly.domain.SearchHistoryRepository
+import uk.ac.tees.mad.bookly.data.* 
+import uk.ac.tees.mad.bookly.domain.*
 import javax.inject.Singleton
 
 @Module
@@ -43,6 +38,10 @@ abstract class AppModule {
     @Singleton
     abstract fun bindBookSearchRepository(impl: BookSearchRepositoryImpl): BookSearchRepository
 
+    @Binds
+    @Singleton
+    abstract fun bindPreferenceRepository(impl: PreferenceRepositoryImpl): PreferenceRepository
+
     companion object {
         @Provides
         @Singleton
@@ -51,5 +50,11 @@ abstract class AppModule {
         @Provides
         @Singleton
         fun provideFirebaseDatabase(): FirebaseDatabase = FirebaseDatabase.getInstance()
+
+        @Provides
+        @Singleton
+        fun provideSharedPreferences(@ApplicationContext context: Context): SharedPreferences {
+            return context.getSharedPreferences("bookly_prefs", Context.MODE_PRIVATE)
+        }
     }
 }
