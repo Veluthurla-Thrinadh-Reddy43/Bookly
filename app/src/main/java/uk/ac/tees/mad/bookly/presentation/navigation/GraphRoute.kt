@@ -5,6 +5,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 sealed interface GraphRoute {
     @Serializable
+    data object Splash : GraphRoute
+
+    @Serializable
     data object Login : GraphRoute
 
     @Serializable
