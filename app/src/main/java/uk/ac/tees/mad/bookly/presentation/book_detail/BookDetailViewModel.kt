@@ -6,36 +6,29 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import uk.ac.tees.mad.bookly.domain.Book
 import uk.ac.tees.mad.bookly.domain.BookRepository
-import uk.ac.tees.mad.bookly.domain.ReadingListRepository
 import uk.ac.tees.mad.bookly.domain.util.DataError
 import uk.ac.tees.mad.bookly.domain.util.Result
+import uk.ac.tees.mad.bookly.domain.util.onSuccess
 import javax.inject.Inject
 
 @HiltViewModel
 class BookDetailViewModel @Inject constructor(
     private val bookRepository: BookRepository,
-    private val readingListRepository: ReadingListRepository,
-    private val savedStateHandle: SavedStateHandle
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(BookDetailState())
     val state = _state.asStateFlow()
 
+    private val bookId: String? = savedStateHandle.get<String>("bookId")
+
     init {
-        val bookId = savedStateHandle.get<String>("bookId")
-        if (bookId != null) {
-            loadBookDetails(bookId)
-            observeReadingList(bookId)
-        } else {
-            _state.update { it.copy(error = DataError.Remote.NOT_FOUND) }
-        }
+        bookId?.let {
+            loadBookDetails(it)
+        } ?: _state.update { it.copy(error = DataError.Remote.NOT_FOUND) } // Corrected error type
     }
 
     fun onAction(action: BookDetailAction) {
@@ -43,57 +36,31 @@ class BookDetailViewModel @Inject constructor(
             is BookDetailAction.OnSimilarBookClicked -> {
                 loadBookDetails(action.bookId)
             }
-            BookDetailAction.OnAddToListClicked -> {
-                viewModelScope.launch {
-                    val book = state.value.book ?: return@launch
-                    if (state.value.isInReadingList) {
-                        readingListRepository.removeBookFromList(book.id)
-                    } else {
-                        readingListRepository.addBookToList(book)
-                    }
-                }
-            }
             else -> {}
         }
     }
 
-    private fun observeReadingList(bookId: String) {
-        readingListRepository.getReadingList()
-            .distinctUntilChanged()
-            .onEach { list ->
-                _state.update { it.copy(isInReadingList = list.any { book -> book.id == bookId }) }
-            }
-            .launchIn(viewModelScope)
-    }
-
     private fun loadBookDetails(id: String) {
         viewModelScope.launch {
-            _state.update { it.copy(isLoading = true, book = null, similarBooks = emptyList(), error = null) }
+            _state.update { it.copy(isLoading = true) }
 
-            val bookResult = bookRepository.getBookById(id)
-            if (bookResult is Result.Failure) {
-                _state.update { it.copy(isLoading = false, error = bookResult.error) }
-                return@launch
-            }
-            val book = (bookResult as Result.Success).data
+            when (val result = bookRepository.getBookById(id)) {
+                is Result.Success -> {
+                    val book = result.data
+                    _state.update { it.copy(book = book, isLoading = false) }
 
-            val author = book.authors.firstOrNull()
-            val similarBooks = if (author != null && author.isNotBlank()) {
-                when (val similarResult = bookRepository.searchBooks(author, 20, 0)) {
-                    is Result.Success -> similarResult.data.filter { it.id != book.id }
-                    is Result.Failure -> emptyList() // Non-critical, so we can fail silently
+                    book.authors.firstOrNull()?.let { author ->
+                        if (author.isNotBlank()) {
+                            bookRepository.searchBooks(author, 20, 0)
+                                .onSuccess { similarBooks ->
+                                    _state.update { it.copy(similarBooks = similarBooks.filter { it.id != book.id }) }
+                                }
+                        }
+                    }
                 }
-            } else {
-                emptyList()
-            }
-
-            // Update state with all data at once
-            _state.update {
-                it.copy(
-                    isLoading = false,
-                    book = book,
-                    similarBooks = similarBooks
-                )
+                is Result.Failure -> {
+                    _state.update { it.copy(error = result.error, isLoading = false) }
+                }
             }
         }
     }

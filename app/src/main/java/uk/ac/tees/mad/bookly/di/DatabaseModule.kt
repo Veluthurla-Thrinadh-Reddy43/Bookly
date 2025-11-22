@@ -9,7 +9,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import uk.ac.tees.mad.bookly.data.local.BookDao
 import uk.ac.tees.mad.bookly.data.local.BooklyDatabase
-import uk.ac.tees.mad.bookly.data.local.ReadingListDao
 import javax.inject.Singleton
 
 @Module
@@ -24,15 +23,11 @@ object DatabaseModule {
             BooklyDatabase::class.java,
             "bookly.db"
         )
-        .fallbackToDestructiveMigration()
+        .fallbackToDestructiveMigration() // This will prevent the crash
         .build()
     }
 
     @Provides
     @Singleton
     fun provideBookDao(database: BooklyDatabase): BookDao = database.bookDao()
-
-    @Provides
-    @Singleton
-    fun provideReadingListDao(database: BooklyDatabase): ReadingListDao = database.readingListDao()
 }

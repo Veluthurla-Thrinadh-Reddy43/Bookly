@@ -1,7 +1,6 @@
 package uk.ac.tees.mad.bookly.presentation.book_detail
 
 
-import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -15,7 +14,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -78,23 +76,13 @@ fun BookDetailScreen(
             FloatingActionButton(
                 onClick = { onAction(BookDetailAction.OnAddToListClicked) },
                 shape = CircleShape,
-                containerColor = Color(0xFFD97D5D) // Always custom orange color
+                containerColor = Color(0xFFD97D5D) // Custom orange color
             ) {
-                Crossfade(targetState = state.isInReadingList, label = "Add-Check-Icon") { isInList ->
-                    if (isInList) {
-                        Icon(
-                            imageVector = Icons.Default.Check,
-                            contentDescription = "In Reading List",
-                            tint = Color.White
-                        )
-                    } else {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "Add to List",
-                            tint = Color.White
-                        )
-                    }
-                }
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Add to List",
+                    tint = Color.White
+                )
             }
         }
     ) { paddingValues ->

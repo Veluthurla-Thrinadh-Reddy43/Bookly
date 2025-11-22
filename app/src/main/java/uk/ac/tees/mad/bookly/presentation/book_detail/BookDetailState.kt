@@ -7,7 +7,6 @@ data class BookDetailState(
     val book: Book? = null,
     val similarBooks: List<Book> = emptyList(),
     val isLoading: Boolean = false,
-    val error: DataError? = null,
-    val isOffline: Boolean = false,
-    val isInReadingList: Boolean = false // Renamed for clarity
+    val error: DataError? = null, // Changed from String?
+    val isOffline: Boolean = false // To show the 'Offline' chip
 )

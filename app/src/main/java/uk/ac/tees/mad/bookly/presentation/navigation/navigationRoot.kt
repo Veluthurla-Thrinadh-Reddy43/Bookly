@@ -9,25 +9,17 @@ import uk.ac.tees.mad.bookly.presentation.MainScreen
 import uk.ac.tees.mad.bookly.presentation.book_detail.BookDetailRoot
 import uk.ac.tees.mad.bookly.presentation.forgot_password.ForgotPasswordRoot
 import uk.ac.tees.mad.bookly.presentation.login.LoginRoot
-import uk.ac.tees.mad.bookly.presentation.splash.SplashScreen
 
 @Composable
 fun NavigationRoot(navController: NavHostController) {
 
-    NavHost(navController = navController, startDestination = GraphRoute.Splash) {
+    val startDestination: Any = if (FirebaseAuth.getInstance().currentUser != null) {
+        GraphRoute.Main
+    } else {
+        GraphRoute.Login
+    }
 
-        composable<GraphRoute.Splash> {
-            SplashScreen(onSplashFinished = {
-                val destination = if (FirebaseAuth.getInstance().currentUser != null) {
-                    GraphRoute.Main
-                } else {
-                    GraphRoute.Login
-                }
-                navController.navigate(destination) {
-                    popUpTo(GraphRoute.Splash) { inclusive = true }
-                }
-            })
-        }
+    NavHost(navController = navController, startDestination = startDestination) {
 
         composable<GraphRoute.Login> {
             LoginRoot(
