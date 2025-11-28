@@ -42,6 +42,10 @@ abstract class AppModule {
     @Singleton
     abstract fun bindPreferenceRepository(impl: PreferenceRepositoryImpl): PreferenceRepository
 
+    @Binds
+    @Singleton
+    abstract fun bindReadingListRepository(impl: ReadingListRepositoryImpl): ReadingListRepository
+
     companion object {
         @Provides
         @Singleton

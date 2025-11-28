@@ -1,6 +1,5 @@
 package uk.ac.tees.mad.bookly.presentation.reading_list
 
-
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -13,7 +12,6 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MenuBook
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -29,82 +27,66 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import uk.ac.tees.mad.bookly.R // Make sure you have placeholder drawables
+import coil.compose.AsyncImage
+import uk.ac.tees.mad.bookly.R
 import uk.ac.tees.mad.bookly.ui.theme.BooklyTheme
 
 @Composable
 fun ReadingListRoot(
-    viewModel: ReadingListViewModel = hiltViewModel()
-    // TODO: Add navigation callbacks
+    viewModel: ReadingListViewModel = hiltViewModel(),
+    onBookClick: (String) -> Unit,
+    onNotificationsClick: () -> Unit
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     ReadingListScreen(
         state = state,
-        onAction = viewModel::onAction
+        onAction = {
+            when (it) {
+                is ReadingListAction.OnBookClicked -> onBookClick(it.bookId)
+                is ReadingListAction.OnNotificationsClicked -> onNotificationsClick()
+                else -> viewModel.onAction(it)
+            }
+        }
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReadingListScreen(
     state: ReadingListState,
     onAction: (ReadingListAction) -> Unit,
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("My Reading List", fontWeight = FontWeight.Bold) },
-                actions = {
-                    IconButton(onClick = { onAction(ReadingListAction.OnNotificationsClicked) }) {
-                        Icon(
-                            imageVector = Icons.Default.Notifications,
-                            contentDescription = "Notifications"
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        item {
+            ReadingJourneySection(
+                total = state.totalBooks,
+                finished = state.finishedBooks,
+                inProgress = state.inProgressBooks
             )
-        },
-        // TODO: Replace with actual Bottom Navigation Bar
-        bottomBar = {
-            BottomAppBar(containerColor = MaterialTheme.colorScheme.background) {
-                // Placeholder for bottom nav
-            }
         }
-    ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .padding(paddingValues),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            // Header Section
-            item {
-                ReadingJourneySection(
-                    total = state.totalBooks,
-                    finished = state.finishedBooks,
-                    inProgress = state.inProgressBooks
-                )
-            }
 
-            // Book List Section
-            if (state.isLoading) {
-                item {
-                    Box(modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(32.dp), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
-                    }
+        item {
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 8.dp),
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+            )
+        }
+
+        if (state.isLoading) {
+            item {
+                Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
                 }
-            } else {
-                items(state.books, key = { it.id }) { book ->
-                    ReadingListItem(book = book, onAction = onAction)
-                }
+            }
+        } else {
+            items(state.books, key = { it.id }) { book ->
+                ReadingListItem(book = book, onAction = onAction)
             }
         }
     }
@@ -171,10 +153,11 @@ fun ReadingListItem(book: ReadingListBook, onAction: (ReadingListAction) -> Unit
                 .padding(16.dp),
             verticalAlignment = Alignment.Top
         ) {
-            // Book Cover Image
-            Image(
-                painter = painterResource(id = R.drawable.book_placeholder), // Use Coil to load book.imageUrl
+            AsyncImage(
+                model = book.imageUrl,
                 contentDescription = book.title,
+                placeholder = painterResource(id = R.drawable.book_placeholder),
+                error = painterResource(id = R.drawable.book_placeholder),
                 modifier = Modifier
                     .width(80.dp)
                     .height(120.dp)
@@ -184,7 +167,6 @@ fun ReadingListItem(book: ReadingListBook, onAction: (ReadingListAction) -> Unit
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            // Book Details
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = book.title,
@@ -199,7 +181,6 @@ fun ReadingListItem(book: ReadingListBook, onAction: (ReadingListAction) -> Unit
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            // Action Icons
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(8.dp)

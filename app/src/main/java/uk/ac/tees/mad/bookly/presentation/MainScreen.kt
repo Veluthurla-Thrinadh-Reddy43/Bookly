@@ -22,26 +22,30 @@ import uk.ac.tees.mad.bookly.presentation.components.BottomNavItem
 import uk.ac.tees.mad.bookly.presentation.components.StandardBottomBar
 import uk.ac.tees.mad.bookly.presentation.home.HomeRoot
 import uk.ac.tees.mad.bookly.presentation.navigation.GraphRoute
+import uk.ac.tees.mad.bookly.presentation.reading_list.ReadingListRoot
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(mainNavController: NavHostController) {
+fun MainScreen(mainNavController: NavHostController) { 
     val bottomNavController = rememberNavController()
     val navBackStackEntry by bottomNavController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
     Scaffold(
         topBar = {
-            if (currentDestination?.route == BottomNavItem.Search.route) {
-                CenterAlignedTopAppBar(
-                    title = { Text("Search", fontWeight = FontWeight.Bold) },
-                    actions = {
-                        IconButton(onClick = { mainNavController.navigate(GraphRoute.Notifications) }) {
-                            Icon(Icons.Default.Notifications, contentDescription = "Notifications")
-                        }
-                    }
-                )
+            val title = when (currentDestination?.route) {
+                BottomNavItem.Search.route -> "Search"
+                BottomNavItem.ReadingList.route -> "My Reading List"
+                else -> ""
             }
+            CenterAlignedTopAppBar(
+                title = { Text(title, fontWeight = FontWeight.Bold) },
+                actions = {
+                    IconButton(onClick = { mainNavController.navigate(GraphRoute.Notifications) }) {
+                        Icon(Icons.Default.Notifications, contentDescription = "Notifications")
+                    }
+                }
+            )
         },
         bottomBar = { StandardBottomBar(navController = bottomNavController) }
     ) { paddingValues ->
@@ -59,11 +63,14 @@ fun MainScreen(mainNavController: NavHostController) {
                 )
             }
             composable(BottomNavItem.ReadingList.route) {
-                // Placeholder for Reading List Screen
-                Text("Reading List Screen")
+                ReadingListRoot(
+                    onBookClick = { bookId ->
+                        mainNavController.navigate(GraphRoute.BookDetails(bookId))
+                    },
+                    onNotificationsClick = { mainNavController.navigate(GraphRoute.Notifications) }
+                )
             }
             composable(BottomNavItem.Profile.route) {
-                // Placeholder for Profile Screen
                 Text("Profile Screen")
             }
         }
